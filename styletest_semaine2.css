@@ -1,0 +1,46 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 20px;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 5px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="url"],
+textarea {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+pre {
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  overflow: auto;
+}
