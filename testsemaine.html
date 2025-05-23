@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Générateur de Fiche Formation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@3"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <h1>Générateur de Fiche Formation</h1>
+
+    <form @submit.prevent>
+      <!-- SECTION MAIN -->
+      <h2>Contenu principal</h2>
+      <div v-for="field in config.main" :key="field.id" class="field">
+        <label :for="field.id">{{ field.label }}</label>
+        <div v-if="isObject(formData.main[field.id])">
+          <input
+            v-for="(val, key) in formData.main[field.id]"
+            :key="key"
+            type="text"
+            :placeholder="key"
+            v-model="formData.main[field.id][key]"
+          >
+        </div>
+        <textarea
+          v-else
+          :id="field.id"
+          v-model="formData.main[field.id]"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- SECTION ASIDE -->
+      <h2>Informations complémentaires</h2>
+      <div v-for="field in config.aside" :key="field.id" class="field">
+        <label :for="field.id">{{ field.label }}</label>
+        <textarea
+          :id="field.id"
+          v-model="formData.aside[field.id]"
+          rows="3"
+        ></textarea>
+      </div>
+    </form>
+
+    <pre><code>{{ formData }}</code></pre>
+  </div>
+
+  <script>
+    const config = {
+      main: [
+        { id: "objectifs", label: "Objectifs", type: "markdown" },
+        { id: "ficheUrl", label: "Bouton vers la fiche formation", type: "link", fields: ["label", "url"] },
+        { id: "missions", label: "Missions", type: "markdown" },
+        { id: "secteurs", label: "Secteurs d'activité", type: "textarea" },
+        { id: "debouches", label: "Métiers et débouchés", type: "textarea" },
+        { id: "competences", label: "Blocs de compétences", type: "markdown" },
+        { id: "inscription", label: "Inscription", type: "markdown" },
+        { id: "video", label: "Vidéo de présentation", type: "inputText" }
+      ],
+      aside: [
+        { id: "prerequis", label: "Prérequis", type: "textarea" },
+        { id: "rythme", label: "Rythme", type: "textarea" },
+        { id: "alternance", label: "Dispositif d'alternance", type: "textarea" },
+        { id: "financements", label: "Autres financements", type: "textarea" },
+        { id: "infos", label: "Informations complémentaires", type: "textarea" }
+      ]
+    };
+
+    const app = Vue.createApp({
+      data() {
+        const initFormData = {};
+        for (const zone in config) {
+          initFormData[zone] = {};
+          config[zone].forEach(field => {
+            initFormData[zone][field.id] = field.type === 'link'
+              ? { label: '', url: '' }
+              : '';
+          });
+        }
+        return {
+          config,
+          formData: initFormData
+        };
+      },
+      methods: {
+        isObject(value) {
+          return value && typeof value === 'object' && !Array.isArray(value);
+        }
+      }
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+</html>
