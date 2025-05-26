@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Générateur de Fiche Formation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@3"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+  <div id="app" class="container">
+    <h1 class="title">Générateur de Fiche Formation</h1>
+
+    <!-- field est égal aux champs du formulaire  -->
+
+    <!--le formulaire empeche l'envoi avec submit.prevent 
+    (empêche le comportement par défaut qui est de soumettre le formulaire.)-->
+    <form @submit.prevent>
+      <h2 class="section-title">Contenu principal</h2>
+      <!-- boucle parcourant chaque champ de  main qui dans config/ l'élément clé des données: id de field-->
+      <div v-for="field in config.main" :key="field.id" class="form-group">
+       <!-- affiche nom champs -->
+        <label>{{ field.label }}</label>
+
+        <!-- pour les 2 sous champs de fichierUrl  si id égal fichierUrl-->
+        <div v-if=" field.id === 'ficheUrl' ">
+          <div class="form-group">
+            <!-- lie le label à un type de zone de texte par l'id -->
+            <label :for="field.id + '_label'">Label</label>
+            <textarea :id="field.id + '_label'" v-model="stockage.main[field.id].label" ></textarea>
+          </div>
+          <div class="form-group">
+            <label :for="field.id + '_url'">URL</label>
+            <textarea :id="field.id + '_url'" v-model="stockage.main[field.id].url" ></textarea>
+          </div>
+        </div>
+
+        <!--les autres champs prennent zoen de texte simple-->
+        <div v-else>
+          <textarea :id="field.id" v-model="stockage.main[field.id]"></textarea>
+        </div>
+      </div>
+
+      <h2 class="section-title">Informations complémentaires</h2>
+      <div v-for="field in config.aside" :key="field.id" class="form-group">
+        <label :for="field.id">{{ field.label }}</label>
+        <textarea :id="field.id" v-model="stockage.aside[field.id]" ></textarea>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const config = {
+      main: [
+        { id: "objectifs", label: "Objectifs", type: "markdown" },
+        { id: "ficheUrl", label: "Bouton vers la fiche formation", type: "link", fields: ["label", "url"] },
+        { id: "missions", label: "Missions", type: "markdown" },
+        { id: "secteurs", label: "Secteurs d'activité", type: "textarea" },
+        { id: "debouches", label: "Métiers et débouchés", type: "textarea" },
+        { id: "competences", label: "Blocs de compétences", type: "markdown" },
+        { id: "inscription", label: "Inscription", type: "markdown" },
+        { id: "video", label: "Vidéo de présentation", type: "inputText" }
+      ],
+      aside: [
+        { id: "prerequis", label: "Prérequis", type: "textarea" },
+        { id: "rythme", label: "Rythme", type: "textarea" },
+        { id: "alternance", label: "Dispositif d'alternance", type: "textarea" },
+        { id: "financements", label: "Autres financements", type: "textarea" },
+        { id: "infos", label: "Informations complémentaires", type: "textarea" }
+      ]
+    };
+
+    const app = Vue.createApp({
+      data() {
+        //constante permettant la reconstruction d'un objet à partir de paires de clé/valeur, stocke les valeurs saisies
+        const stockage = Object.fromEntries(
+            //transforme config en tableau de 2 sections (main et aside)
+            //pour chaque sections (main ou aside) on a une clé et le nom du chanps 
+          Object.entries(config).map(([zone, fields]) => [
+            zone,
+            Object.fromEntries(
+                //pour chaque champ
+              fields.map(field => [
+                field.id,
+                field.id === 'ficheUrl'
+                  ? { label: '', url: '' }
+                  : ''
+              ])
+            )
+          ])
+        );
+
+        return { config, stockage };
+      }
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+</html>
+
