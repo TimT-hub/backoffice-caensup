@@ -20,34 +20,54 @@
     (empêche le comportement par défaut qui est de soumettre le formulaire.)-->
     <form @submit.prevent>
       <h2 class="section-title">Contenu principal</h2>
-      <!-- boucle parcourant chaque champ de  main qui dans config/ l'élément clé des données: id de field-->
+      <!-- boucle parcourant chaque champ de  main qui dans config/ l'élément clé des 
+       données: id de field-->
       <div v-for="field in config.main" :key="field.id" class="form-group">
-       <!-- affiche nom champs -->
-        <label>{{ field.label }}</label>
+        <!-- affiche nom champs -->
+        <label :for="field.id">{{ field.label }}</label>
 
-        <!-- pour les 2 sous champs de fichierUrl  si id égal fichierUrl-->
-        <div v-if=" field.id === 'ficheUrl' ">
+        <!-- champs -->
+        <!-- type: inputText -->
+        <input v-if="field.type === 'inputText'" type="text" :id="field.id" v-model="stockage.main[field.id]" class="input" />
+
+        <!-- type: Textarea -->
+        <textarea v-else-if="field.type === 'textarea'" :id="field.id" v-model="stockage.main[field.id]" class="textarea"></textarea>
+
+        <!-- type: Markdown -->
+        <textarea v-else-if="field.type === 'markdown'" :id="field.id" v-model="stockage.main[field.id]" class="textarea markdown-textarea" placeholder="Markdown"></textarea>
+
+        <!-- type: link -->
+         <div v-else-if="field.type === 'link'" class="link-group">
           <div class="form-group">
-            <!-- lie le label à un type de zone de texte par l'id -->
             <label :for="field.id + '_label'">Label</label>
-            <textarea :id="field.id + '_label'" v-model="stockage.main[field.id].label" ></textarea>
+            <input :id="field.id + '_label'" type="text" v-model="stockage.main[field.id].label" class="input" />
           </div>
           <div class="form-group">
             <label :for="field.id + '_url'">URL</label>
-            <textarea :id="field.id + '_url'" v-model="stockage.main[field.id].url" ></textarea>
+            <input :id="field.id + '_url'" type="url" v-model="stockage.main[field.id].url" class="input" />
           </div>
         </div>
-
-        <!--les autres champs prennent zoen de texte simple-->
-        <div v-else>
-          <textarea :id="field.id" v-model="stockage.main[field.id]"></textarea>
-        </div>
+        <!-- type inconnu -->
+        <div v-else class="error">Type inconnu : {{ field.type }}</div>
       </div>
 
       <h2 class="section-title">Informations complémentaires</h2>
+
+      <!--boucle pour la partie complémentaire-->
+      <h2 class="section-title">Informations complémentaires</h2>
+
       <div v-for="field in config.aside" :key="field.id" class="form-group">
         <label :for="field.id">{{ field.label }}</label>
-        <textarea :id="field.id" v-model="stockage.aside[field.id]" ></textarea>
+
+        <!--type champs-->
+
+        <input v-if="field.type === 'inputText'" type="text" :id="field.id" v-model="stockage.aside[field.id]" class="input" />
+
+        <textarea v-else-if="field.type === 'textarea'" :id="field.id" v-model="stockage.aside[field.id]" class="textarea"></textarea>
+
+        <textarea v-else-if="field.type === 'markdown'" :id="field.id" v-model="stockage.aside[field.id]" class="textarea markdown-textarea" placeholder="Markdown"></textarea>
+
+        <div v-else class="error">Type inconnu : {{ field.type }}</div>
       </div>
     </form>
   </div>
@@ -55,45 +75,58 @@
   <script>
     const config = {
       main: [
-        { id: "objectifs", label: "Objectifs", type: "markdown" },
-        { id: "ficheUrl", label: "Bouton vers la fiche formation", type: "link", fields: ["label", "url"] },
-        { id: "missions", label: "Missions", type: "markdown" },
-        { id: "secteurs", label: "Secteurs d'activité", type: "textarea" },
-        { id: "debouches", label: "Métiers et débouchés", type: "textarea" },
-        { id: "competences", label: "Blocs de compétences", type: "markdown" },
-        { id: "inscription", label: "Inscription", type: "markdown" },
-        { id: "video", label: "Vidéo de présentation", type: "inputText" }
+        { id: "objectifs", label: "Objectifs", type: "markdown", default: ""
+        },
+        { id: "ficheUrl", label: "Bouton vers la fiche formation", type: "link", 
+          fields: ["label", "url"], default: {
+          label: "Voir la fiche",
+          url: "https://caensup.fr/"
+          }
+        },
+        { id: "missions", label: "Missions", type: "markdown", default: ""
+        },
+        { id: "secteurs", label: "Secteurs d'activité", type: "textarea", default: ""
+        },
+        { id: "debouches", label: "Métiers et débouchés", type: "textarea", default: ""
+        },
+        { id: "competences", label: "Blocs de compétences", type: "markdown", default: ""
+        },
+        { id: "inscription", label: "Inscription", type: "markdown", default: ""
+        },
+        { id: "video", label: "Vidéo de présentation", type: "inputText", default: ""
+        }
       ],
       aside: [
-        { id: "prerequis", label: "Prérequis", type: "textarea" },
-        { id: "rythme", label: "Rythme", type: "textarea" },
-        { id: "alternance", label: "Dispositif d'alternance", type: "textarea" },
-        { id: "financements", label: "Autres financements", type: "textarea" },
-        { id: "infos", label: "Informations complémentaires", type: "textarea" }
+        { id: "prerequis", label: "Prérequis", type: "textarea", default: ""
+        },
+        { id: "rythme", label: "Rythme", type: "textarea", default: ""
+        },
+        { id: "alternance", label: "Dispositif d'alternance", type: "textarea", default: ""
+        },
+        { id: "financements", label: "Autres financements", type: "textarea", default: ""
+        },
+        { id: "infos", label: "Informations complémentaires", type: "textarea", default: ""
+        }
       ]
     };
 
     const app = Vue.createApp({
       data() {
-        //constante permettant la reconstruction d'un objet à partir de paires de clé/valeur, stocke les valeurs saisies
-        const stockage = Object.fromEntries(
-            //transforme config en tableau de 2 sections (main et aside)
-            //pour chaque sections (main ou aside) on a une clé et le nom du chanps 
-          Object.entries(config).map(([zone, fields]) => [
-            zone,
-            Object.fromEntries(
-                //pour chaque champ
-              fields.map(field => [
-                field.id,
-                field.id === 'ficheUrl'
-                  ? { label: '', url: '' }
-                  : ''
-              ])
-            )
-          ])
-        );
-
-        return { config, stockage };
+        //l'objet contiend données organisées par zones(main,aside) 
+        const stockage = {};
+        //boucle parcours chaque partie de config(main/aside))
+        for (const zone in config) {
+          stockage[zone] = {};
+          //on parcours chaque champ (avec field) dans une des 2 zones (main/aside)
+          config[zone].forEach(field => {
+            //chaque champ a une valeur défine par défaut ou vide sinon
+            stockage[zone][field.id] = field.default ?? "";
+          });
+        }
+        return {
+          config,
+          stockage
+        };
       }
     });
 
@@ -101,4 +134,3 @@
   </script>
 </body>
 </html>
-
