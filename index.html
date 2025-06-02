@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -12,6 +14,18 @@
   <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
   <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+    <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+
+    <script>
+  if (typeof primevue === 'undefined') {
+    console.error('PrimeVue n\'est pas chargé correctement.');
+  } else {
+    console.log('PrimeVue chargé avec succès!');
+  }
+</script>
+  
 </head>
 
 <body class="bg-gray-100 p-6">
@@ -25,6 +39,16 @@
 
     <form @submit.prevent>
 
+      <Dropdown 
+        v-model="selection_partie" 
+        :options="options" 
+        optionLabel="label" 
+        optionValue="value"
+        placeholder="Choisir une partie"
+        class="mb-4 w-full md:w-60"
+      />
+
+      <div v-if="selection_partie === 'main'">
       <h2 class="text-xl font-semibold mb-4 border-b pb-2">Contenu principal</h2>
       <!-- boucle parcourant chaque champ de  main qui dans config/ l'élément clé des 
        données: id de field-->
@@ -36,7 +60,10 @@
                    v-model="stockage.main[field.id]">
         </component>
       </div>
+      </div>
 
+
+      <div v-if="selection_partie === 'aside'">
       <!-- boucle pour la partie complémentaires -->
       <h2 class="text-xl font-semibold mb-4 mt-10 border-b pb-2">Informations complémentaires</h2>
       <div v-for="field in config.aside" :key="field.id" class="mb-6">
@@ -46,11 +73,17 @@
                    v-model="stockage.aside[field.id]">
         </component>
       </div>
+      </div>
+
     </form>
   </div>
 
   <script>
-    const app = Vue.createApp({
+
+    const { createApp, ref } = Vue;
+
+   //Vue.createApp sans la constante du dessus
+    const app = createApp({
       data() {
         const config = {
           main: [
@@ -87,7 +120,14 @@
           });
         }
 
-        return { config, stockage };
+        const selection_partie = ref(null);
+
+        const options = [
+          { label: 'Partie Principale', value: 'main' },
+          { label: 'Partie Aside', value: 'aside' }
+        ];
+
+        return { config, stockage, selection_partie, options };
       },
       methods: {
         getComponent(type) {
@@ -100,6 +140,7 @@
         }
       }
     });
+
 
     app.component('input-field', {
       //quelles données le composant va recevoir
@@ -199,6 +240,14 @@
       props: ['field'],
       template: `<div class="text-red-500">Type inconnu : {{ field.type }}</div>`
     });
+
+    app.use(PrimeVue.Config, {
+        theme: {
+            preset: PrimeVue.Themes.Aura
+        }
+    });
+
+    app.component('Dropdown', Dropdown);
 
     app.mount('#app');
   </script>
