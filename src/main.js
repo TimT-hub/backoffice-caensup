@@ -1,3 +1,5 @@
+//dans terminal :--> [vite] hmr update /src/App.vue, /main.css (x2)
+
 import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
 import Dropdown from 'primevue/dropdown'

@@ -7,20 +7,45 @@
         <TabPanel header="Partie principale">
           <template #default>
             <div v-for="field in config.main" :key="field.id" class="mb-6">
-              <component :is="getComponent(field.type)"
-                         :field="field"
-                         :zone="'main'"
-                         v-model="stockage.main[field.id]" />
+              
+              <div class="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  v-model="stockage.main[field.id].hidden"
+                  class="mr-2"
+                  :id="'hide_' + field.id"
+                />
+                <label :for="'hide_' + field.id" class="text-sm">Masquer ce champ</label>
+              </div>
+
+              <component v-if="!stockage.main[field.id].hidden"
+                        :is="getComponent(field.type)"
+                        :field="field"
+                        :zone="'main'"
+                        v-model="stockage.main[field.id].value"
+                        />
             </div>
           </template>
         </TabPanel>
+
         <TabPanel header="Informations complémentaires">
           <template #default>
             <div v-for="field in config.aside" :key="field.id" class="mb-6">
-              <component :is="getComponent(field.type)"
-                         :field="field"
-                         :zone="'aside'"
-                         v-model="stockage.aside[field.id]" />
+              <div class="flex items-center mb-2">
+                <input
+                type="checkbox"
+                v-model="stockage.aside[field.id].hidden"
+                class="mr-2"
+                :id="'hide_' + field.id"
+                />
+                <label :for="'hide_' + field.id" class="text-sm">Masquer ce champ</label>
+              </div>
+              <component v-if="!stockage.aside[field.id].hidden"
+                        :is="getComponent(field.type)"
+                        :field="field"
+                        :zone="'aside'"
+                        v-model="stockage.aside[field.id].value"
+              />
             </div>
           </template>
         </TabPanel>
@@ -42,7 +67,10 @@ import config from './config/formConfig.js'
 const stockage = reactive({ main: {}, aside: {} })
 for (const zone in config) {
   config[zone].forEach(field => {
-    stockage[zone][field.id] = field.default ?? ""
+    stockage[zone][field.id] = { 
+      value: field.default ?? "",
+      hidden: false
+      }
   })
 }
 
