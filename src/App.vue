@@ -47,17 +47,16 @@
                         v-model="stockage.aside[field.id].value"
               />
             </div>
-
-            <!--Bouton d'ajout dans le template-->
-            <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Afficher le HTML</button>
-            
-            <div v-if="htmlGenere" class="mt-8 p-4 border rounded bg-gray-50">
-            <h2 class="text-xl font-semibold mb-2">Aperçu HTML généré :</h2>
-          <div v-html="htmlGenere" class="prose max-w-none"></div>
-          </div>
           </template>
         </TabPanel>
       </TabView>
+        <!--Bouton d'ajout dans le template-->
+        <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
+
+        <div v-if="htmlGenere" class="mt-8 p-4 border rounded bg-gray-50">
+          <h2 class="text-xl font-semibold mb-2">Aperçu HTML généré :</h2>
+          <textarea v-model="htmlGenere" class="prose max-w-none" rows="10" disabled></textarea>
+        </div>
       </form>
     </div>
   </div>
@@ -116,38 +115,19 @@ function getComponent(type) {
 }
 
 // crée bloc HTML contenant champs 
-function genererHTML() {
+function genererHTML(zConfig,zData) {
 
   converter.init();
-  //crée chaines de caracteres avec une balise div
-  let html = `<div class="fiche-formation">`
-
-  html += `<section><h2>Partie principale</h2>`
-  //une boucle pour chaque champs de main dans config
-  for (const field of config.main) {
+  let html = '';
+  for (const field of zConfig) {
     //recupere les données associés via l'ID
-    const data = stockage.main[field.id]
+    const data = zData[field.id]
     //si le champ est visible et a une valeur on l'affiche
     if (!data.hidden && data.value) {
       //on appele fonction genererChampHTML() pour obtenir le HTML du champ
       html += genererChampHTML(field, data.value)
     }
   }
-  //fermeture de la balise <section>
-  html += `</section>`
-
-  html += `<section><h2>Informations complémentaires</h2>`
-  for (const field of config.aside) {
-    const data = stockage.aside[field.id]
-    if (!data.hidden && data.value) {
-      html += genererChampHTML(field, data.value)
-    }
-  }
-  html += `</section>`
-
-
-  //On ferme la balise <div>
-  html += `</div>`
   return html
 }
 
@@ -178,6 +158,10 @@ const htmlGenere = ref('')
 
 // Fonction pour afficher ce HTML dans la page
 function afficherHTML() {
-  htmlGenere.value = genererHTML()
+  if(activeTab.value===1) {
+    htmlGenere.value = genererHTML(config.aside, stockage.aside)
+  } else {
+    htmlGenere.value = genererHTML(config.main, stockage.main)
+  }
 }
 </script>
