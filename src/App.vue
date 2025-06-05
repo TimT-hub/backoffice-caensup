@@ -58,15 +58,8 @@
           </div>
           <!--Bouton d'ajout dans le template-->
           <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
-
-          <div v-if="htmlGenere[0]" class="mt-8 p-4 border rounded bg-gray-50">
-            <h2 class="text-xl font-semibold mb-2">Main :</h2>
-            <textarea v-model="htmlGenere[0]" class="prose max-w-none" rows="10" disabled></textarea>
-          </div>
-          <div v-if="htmlGenere[1]" class="mt-8 p-4 border rounded bg-gray-50">
-            <h2 class="text-xl font-semibold mb-2">Aside :</h2>
-            <textarea v-model="htmlGenere[1]" class="prose max-w-none" rows="10" disabled></textarea>
-          </div>
+            <HtmlCodePreview title="Main" :code="htmlGenere[0]"/>
+            <HtmlCodePreview title="Aside" :code="htmlGenere[1]"/>
         </TabPanel>
         <TabPanel header="Aperçu"></TabPanel>
       </TabView>
@@ -77,14 +70,12 @@
 
 <script setup>
 
-
-
-
 const activeTab = ref(0)
 import Editor from '@toast-ui/editor';
 import { ref, reactive, watch } from 'vue'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
+import HtmlCodePreview from './components/HtmlCodePreview.vue'
 import '@toast-ui/editor/dist/toastui-editor.css'
 import config from './config/formConfig.js'
 
@@ -156,10 +147,10 @@ function genererChampHTML(field, value) {
       return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
     case 'markdown':
       // il faut parser le markdown
-      return converter.toHTML(value);
+      return `<h2>${field.label}</h2> ${converter.toHTML(value)}`;
     case 'link':
       // un paragraphe où ést crée un lien cliquable
-      return `<p><strong>${field.label} :</strong> <a href="${value}" target="_blank">${value}</a></p>`
+      return `<p class="formation-actions"><a href="${value.url}" target="_blank" class="border-link">${value.label}</a></p>`;
     default:
       //Cas par défaut si le type est inconnu, suis le contenu de la boucle pour le type des champs
       return `<p><strong>${field.label} :</strong> ${value}</p>`

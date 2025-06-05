@@ -5,7 +5,7 @@ export default {
       id: "ficheUrl",
       label: "Bouton vers la fiche formation",
       type: "link",
-      default: { label: "Voir la fiche", url: "https://caensup.fr/" }
+      default: { label: "Voir la fiche formation", url: "https://caensup.fr/" }
     },
     { id: "missions", label: "Missions", type: "markdown", default: "" },
     { id: "secteurs", label: "Secteurs d'activité", type: "textarea", default: "" },

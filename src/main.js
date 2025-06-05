@@ -24,12 +24,14 @@ import TextareaField from './components/TextareaField.vue'
 import MarkdownField from './components/MarkdownField.vue'
 import LinkField from './components/LinkField.vue'
 import UnknownField from './components/UnknownField.vue'
+import HtmlCodePreview from "./components/HtmlCodePreview.vue";
 
 app.component('input-field', InputField)
 app.component('textarea-field', TextareaField)
 app.component('markdown-field', MarkdownField)
 app.component('link-field', LinkField)
 app.component('unknown-field', UnknownField)
+app.component('HtmlCodePreview',HtmlCodePreview)
 
 
 import TabView from 'primevue/tabview'
@@ -38,5 +40,3 @@ import TabPanel from 'primevue/tabpanel'
 app.component('TabView', TabView)
 app.component('TabPanel', TabPanel)
 
-//pour parser pour le type markdown pour le generateur HTML
-import DOMPurify from 'dompurify'
