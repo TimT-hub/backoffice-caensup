@@ -65,15 +65,38 @@
 
 <script setup>
 
+
+
+
 const activeTab = ref(0)
+import Editor from '@toast-ui/editor';
 import { ref, reactive, watch } from 'vue'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import '@toast-ui/editor/dist/toastui-editor.css'
 import config from './config/formConfig.js'
-import { marked } from 'marked'
 
-const stockage = reactive({ main: {}, aside: {} })
+const stockage = reactive({ main: {}, aside: {} });
+
+const converter = {
+  editor: null,
+  init() {
+    const div = document.createElement('div');
+    div.style.display = 'none';
+    document.body.appendChild(div);
+    this.editor = new Editor({
+      el: div,
+      initialEditType: 'markdown',
+      previewStyle: 'vertical',
+      height: '0px',
+    });
+  },
+  toHTML(markdown) {
+    this.editor.setMarkdown(markdown);
+    return this.editor.getHTML();
+  },
+};
+
 for (const zone in config) {
   config[zone].forEach(field => {
     stockage[zone][field.id] = { 
@@ -94,6 +117,8 @@ function getComponent(type) {
 
 // crée bloc HTML contenant champs 
 function genererHTML() {
+
+  converter.init();
   //crée chaines de caracteres avec une balise div
   let html = `<div class="fiche-formation">`
 
@@ -137,9 +162,8 @@ function genererChampHTML(field, value) {
       //pour textarea, un paragraphe avec des retours à la ligne où \n est remplacé par la balise de retour  à la ligne <br>
       return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
     case 'markdown':
-      //pour markdown, une balise div pour insérer du Markdown 
-      // il faut parser le markdown 
-      return `<div><strong>${field.label} :</strong><div>${DOMPurify.sanitize(marked(value))}</div></div>`
+      // il faut parser le markdown
+      return converter.toHTML(value);
     case 'link':
       // un paragraphe où ést crée un lien cliquable
       return `<p><strong>${field.label} :</strong> <a href="${value}" target="_blank">${value}</a></p>`
