@@ -49,14 +49,27 @@
             </div>
           </template>
         </TabPanel>
-      </TabView>
-        <!--Bouton d'ajout dans le template-->
-        <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
+        <TabPanel header="Génération">
+          <div class="p-4 bg-gray-100 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Génération du HTML</h2>
+            <p class="mb-2">Sélectionnez les champs à afficher dans la partie principale et les informations complémentaires.</p>
+            <p class="mb-2">Cliquez sur le bouton "Générer le HTML" pour voir le résultat.</p>
+            <p class="text-sm text-gray-600">Note : Les champs masqués ne seront pas inclus dans le HTML généré.</p>
+          </div>
+          <!--Bouton d'ajout dans le template-->
+          <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
 
-        <div v-if="htmlGenere" class="mt-8 p-4 border rounded bg-gray-50">
-          <h2 class="text-xl font-semibold mb-2">Aperçu HTML généré :</h2>
-          <textarea v-model="htmlGenere" class="prose max-w-none" rows="10" disabled></textarea>
-        </div>
+          <div v-if="htmlGenere[0]" class="mt-8 p-4 border rounded bg-gray-50">
+            <h2 class="text-xl font-semibold mb-2">Main :</h2>
+            <textarea v-model="htmlGenere[0]" class="prose max-w-none" rows="10" disabled></textarea>
+          </div>
+          <div v-if="htmlGenere[1]" class="mt-8 p-4 border rounded bg-gray-50">
+            <h2 class="text-xl font-semibold mb-2">Aside :</h2>
+            <textarea v-model="htmlGenere[1]" class="prose max-w-none" rows="10" disabled></textarea>
+          </div>
+        </TabPanel>
+        <TabPanel header="Aperçu"></TabPanel>
+      </TabView>
       </form>
     </div>
   </div>
@@ -154,14 +167,11 @@ function genererChampHTML(field, value) {
 }
 
 //  pour stocker le HTML généré
-const htmlGenere = ref('')
+const htmlGenere = ref(['', '']);
 
 // Fonction pour afficher ce HTML dans la page
 function afficherHTML() {
-  if(activeTab.value===1) {
-    htmlGenere.value = genererHTML(config.aside, stockage.aside)
-  } else {
-    htmlGenere.value = genererHTML(config.main, stockage.main)
-  }
+  htmlGenere.value[0] = genererHTML(config.main, stockage.main);
+  htmlGenere.value[1] = genererHTML(config.aside, stockage.aside);
 }
 </script>
