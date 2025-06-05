@@ -1,4 +1,4 @@
-//dans terminal :--> [vite] hmr update /src/App.vue, /main.css (x2)
+//dans terminal en bas:--> npm run dev
 
 import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
@@ -37,3 +37,6 @@ import TabPanel from 'primevue/tabpanel'
 
 app.component('TabView', TabView)
 app.component('TabPanel', TabPanel)
+
+//pour parser pour le type markdown pour le generateur HTML
+import DOMPurify from 'dompurify'

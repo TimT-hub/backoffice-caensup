@@ -47,6 +47,14 @@
                         v-model="stockage.aside[field.id].value"
               />
             </div>
+
+            <!--Bouton d'ajout dans le template-->
+            <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Afficher le HTML</button>
+            
+            <div v-if="htmlGenere" class="mt-8 p-4 border rounded bg-gray-50">
+            <h2 class="text-xl font-semibold mb-2">Aperçu HTML généré :</h2>
+          <div v-html="htmlGenere" class="prose max-w-none"></div>
+          </div>
           </template>
         </TabPanel>
       </TabView>
@@ -63,6 +71,7 @@ import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import '@toast-ui/editor/dist/toastui-editor.css'
 import config from './config/formConfig.js'
+import { marked } from 'marked'
 
 const stockage = reactive({ main: {}, aside: {} })
 for (const zone in config) {
@@ -81,5 +90,70 @@ function getComponent(type) {
     markdown: 'markdown-field',
     link: 'link-field'
   }[type] || 'unknown-field'
+}
+
+// crée bloc HTML contenant champs 
+function genererHTML() {
+  //crée chaines de caracteres avec une balise div
+  let html = `<div class="fiche-formation">`
+
+  html += `<section><h2>Partie principale</h2>`
+  //une boucle pour chaque champs de main dans config
+  for (const field of config.main) {
+    //recupere les données associés via l'ID
+    const data = stockage.main[field.id]
+    //si le champ est visible et a une valeur on l'affiche
+    if (!data.hidden && data.value) {
+      //on appele fonction genererChampHTML() pour obtenir le HTML du champ
+      html += genererChampHTML(field, data.value)
+    }
+  }
+  //fermeture de la balise <section>
+  html += `</section>`
+
+  html += `<section><h2>Informations complémentaires</h2>`
+  for (const field of config.aside) {
+    const data = stockage.aside[field.id]
+    if (!data.hidden && data.value) {
+      html += genererChampHTML(field, data.value)
+    }
+  }
+  html += `</section>`
+
+
+  //On ferme la balise <div>
+  html += `</div>`
+  return html
+}
+
+// fonction qui retourne un HTML généré pour chaque champ en fonction du type
+function genererChampHTML(field, value) {
+  //Condition 'switch' qui permet d'apater le format HTML en fonction du type
+  switch (field.type) {
+    case 'inputText':
+      //pour inputText, un paragraphe simple, value est le texte saisi par l'utilisateur
+      return `<p><strong>${field.label} :</strong> ${value}</p>`
+    case 'textarea':
+      //pour textarea, un paragraphe avec des retours à la ligne où \n est remplacé par la balise de retour  à la ligne <br>
+      return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
+    case 'markdown':
+      //pour markdown, une balise div pour insérer du Markdown 
+      // il faut parser le markdown 
+      return `<div><strong>${field.label} :</strong><div>${DOMPurify.sanitize(marked(value))}</div></div>`
+    case 'link':
+      // un paragraphe où ést crée un lien cliquable
+      return `<p><strong>${field.label} :</strong> <a href="${value}" target="_blank">${value}</a></p>`
+    default:
+      //Cas par défaut si le type est inconnu, suis le contenu de la boucle pour le type des champs
+      return `<p><strong>${field.label} :</strong> ${value}</p>`
+  }
+}
+
+//  pour stocker le HTML généré
+const htmlGenere = ref('')
+
+// Fonction pour afficher ce HTML dans la page
+function afficherHTML() {
+  htmlGenere.value = genererHTML()
 }
 </script>

@@ -8,6 +8,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.8",
     "@toast-ui/editor": "^3.2.2",
+    "dompurify": "^3.2.6",
     "primeicons": "^6.0.0",
     "primevue": "^3.53.0",
     "vue": "^3.4.0"
