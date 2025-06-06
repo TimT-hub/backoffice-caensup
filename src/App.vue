@@ -142,9 +142,18 @@ function genererChampHTML(field, value) {
     case 'inputText':
       //pour inputText, un paragraphe simple, value est le texte saisi par l'utilisateur
       return `<p><strong>${field.label} :</strong> ${value}</p>`
-    case 'textarea':
-      //pour textarea, un paragraphe avec des retours à la ligne où \n est remplacé par la balise de retour  à la ligne <br>
-      return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
+    case 'textarea': {
+        const confLc = {
+          ul: { pre: "ul", it: "li" },
+          ol: { pre: "ol", it: "li" },
+          p:  { pre: null, it: "p" }
+            }
+            const convline = confLc[field.lineConverter]
+            if (!convline) {
+              return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
+            }
+            const lignes = value.split('\n').map()
+            }
     case 'markdown':
       // il faut parser le markdown
       return `<h2>${field.label}</h2> ${converter.toHTML(value)}`;
