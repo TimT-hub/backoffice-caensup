@@ -152,7 +152,15 @@ function genererChampHTML(field, value) {
             if (!convline) {
               return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
             }
-            const lignes = value.split('\n').map()
+            const lignes = value.split('\n').map(v=>`<${convline.it}>${v}</${convline.it}>`);
+            
+            const contenu = lignes.join('');
+            
+            const labelHtml = `<p><strong>${field.label} :</strong></p>`;
+            
+            return convline.pre
+              ? `${labelHtml}<${convline.pre}>${contenu}</${convline.pre}>`
+              : `${labelHtml}${contenu}`;
             }
     case 'markdown':
       // il faut parser le markdown
