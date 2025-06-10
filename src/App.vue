@@ -61,7 +61,12 @@
             <HtmlCodePreview title="Main" :code="htmlGenere[0]"/>
             <HtmlCodePreview title="Aside" :code="htmlGenere[1]"/>
         </TabPanel>
-        <TabPanel header="Aperçu"></TabPanel>
+        <TabPanel header="Aperçu">
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Aperçu de la fiche de formation</h2>
+            <div class="p-4 border rounded bg-white" v-html="htmlGenere[0] + htmlGenere[1]"></div>
+          </div>
+        </TabPanel>
       </TabView>
       </form>
     </div>
