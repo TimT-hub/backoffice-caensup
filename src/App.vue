@@ -18,7 +18,7 @@
                 <label :for="'hide_' + field.id" class="text-sm">Masquer ce champ</label>
               </div>
 
-              <component v-if="!stockage.main[field.id].hidden"
+              <component v-if="stockage.main[field.id].hidden"
                         :is="getComponent(field.type)"
                         :field="field"
                         :zone="'main'"
@@ -38,9 +38,9 @@
                 class="mr-2"
                 :id="'hide_' + field.id"
                 />
-                <label :for="'hide_' + field.id" class="text-sm">Masquer ce champ</label>
+                <label :for="'hide_' + field.id" class="text-sm">Afficher ce champ</label>
               </div>
-              <component v-if="!stockage.aside[field.id].hidden"
+              <component v-if="stockage.aside[field.id].hidden"
                         :is="getComponent(field.type)"
                         :field="field"
                         :zone="'aside'"
@@ -58,15 +58,29 @@
           </div>
           <!--Bouton d'ajout dans le template-->
           <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
-            <HtmlCodePreview title="Main" :code="htmlGenere[0]"/>
-            <HtmlCodePreview title="Aside" :code="htmlGenere[1]"/>
+
+          <div class="flex gap-4 mt-4">
+            <button @click="sauvegarderConfig('default')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Sauvegarder la configuration
+            </button>
+            <button @click="chargerConfig('default')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Charger la configuration
+          </button>
+        </div>
+            <div class="mt-6">
+              <HtmlCodePreview title="Main" :code="htmlGenere[0]" />
+              <button @click="copier(htmlGenere[0])" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Copier le HTML
+              </button>
+            </div>
+            <div class="mt-6">
+              <HtmlCodePreview title="Aside" :code="htmlGenere[1]" />
+              <button @click="copier(htmlGenere[1])" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Copier le HTML
+              </button>
+            </div>
         </TabPanel>
-        <TabPanel header="Aperçu">
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <h2 class="text-xl font-semibold mb-4">Aperçu de la fiche de formation</h2>
-            <div class="p-4 border rounded bg-white" v-html="htmlGenere[0] + htmlGenere[1]"></div>
-          </div>
-        </TabPanel>
+        <TabPanel header="Aperçu"></TabPanel>
       </TabView>
       </form>
     </div>
@@ -109,7 +123,7 @@ for (const zone in config) {
   config[zone].forEach(field => {
     stockage[zone][field.id] = { 
       value: field.default ?? "",
-      hidden: false
+      hidden: true
       }
   })
 }
@@ -132,7 +146,7 @@ function genererHTML(zConfig,zData) {
     //recupere les données associés via l'ID
     const data = zData[field.id]
     //si le champ est visible et a une valeur on l'affiche
-    if (!data.hidden && data.value) {
+    if (data.hidden && data.value) {
       //on appele fonction genererChampHTML() pour obtenir le HTML du champ
       html += genererChampHTML(field, data.value)
     }
@@ -187,4 +201,37 @@ function afficherHTML() {
   htmlGenere.value[0] = genererHTML(config.main, stockage.main);
   htmlGenere.value[1] = genererHTML(config.aside, stockage.aside);
 }
+
+//fonction de copie
+function copier(contenu) {
+  navigator.clipboard.writeText(contenu);
+}
+
+const localStorage_key = 'formConfigSaved';
+
+// Sauvegarder la configuration dans LocalStorage
+function sauvegarderConfig(nom = 'default') {
+  const sauvegarde = {
+    main: JSON.parse(JSON.stringify(stockage.main)),
+    aside: JSON.parse(JSON.stringify(stockage.aside))
+  }
+  localStorage.setItem(`${localStorage_key}_${nom}`, JSON.stringify(sauvegarde));
+  alert("Configuration sauvegardée !");
+}
+
+// Charger la configuration 
+function chargerConfig(nom = 'default') {
+  const sauvegarde = localStorage.getItem(`${localStorage_key}_${nom}`);
+  if (!sauvegarde) {
+    alert("Aucune configuration trouvée.");
+    return;
+  }
+
+  const parsed = JSON.parse(sauvegarde);
+  Object.assign(stockage.main, parsed.main);
+  Object.assign(stockage.aside, parsed.aside);
+  alert("Configuration chargée !");
+}
+
+
 </script>
