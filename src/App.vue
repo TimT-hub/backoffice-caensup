@@ -60,10 +60,18 @@
           <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
 
           <div class="flex gap-4 mt-4">
-            <button @click="sauvegarderConfig('default')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <div>
+              <label for="configName" class="text-sm">Nom de la configuration :</label>
+              <input
+              v-model="configName" 
+              id="configName" 
+              type="text" 
+              class="mt-2 px-3 py-2 border border-gray-300 rounded" />
+            </div>
+            <button @click="sauvegarderConfig(configName)" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Sauvegarder la configuration
             </button>
-            <button @click="chargerConfig('default')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <button @click="chargerConfig(configName)" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Charger la configuration
           </button>
         </div>
@@ -124,8 +132,8 @@ for (const zone in config) {
     stockage[zone][field.id] = { 
       value: field.default ?? "",
       hidden: true
-      }
-  })
+      };
+  });
 }
 
 function getComponent(type) {
@@ -134,7 +142,7 @@ function getComponent(type) {
     textarea: 'textarea-field',
     markdown: 'markdown-field',
     link: 'link-field'
-  }[type] || 'unknown-field'
+  }[type] || 'unknown-field';
 }
 
 // crée bloc HTML contenant champs 
@@ -144,14 +152,14 @@ function genererHTML(zConfig,zData) {
   let html = '';
   for (const field of zConfig) {
     //recupere les données associés via l'ID
-    const data = zData[field.id]
+    const data = zData[field.id];
     //si le champ est visible et a une valeur on l'affiche
     if (data.hidden && data.value) {
       //on appele fonction genererChampHTML() pour obtenir le HTML du champ
-      html += genererChampHTML(field, data.value)
+      html += genererChampHTML(field, data.value);
     }
   }
-  return html
+  return html;
 }
 
 // fonction qui retourne un HTML généré pour chaque champ en fonction du type
@@ -160,16 +168,16 @@ function genererChampHTML(field, value) {
   switch (field.type) {
     case 'inputText':
       //pour inputText, un paragraphe simple, value est le texte saisi par l'utilisateur
-      return `<p><strong>${field.label} :</strong> ${value}</p>`
+      return `<p><strong>${field.label} :</strong> ${value}</p>`;
     case 'textarea': {
         const confLc = {
           ul: { pre: "ul", it: "li" },
           ol: { pre: "ol", it: "li" },
           p:  { pre: null, it: "p" }
-            }
-            const convline = confLc[field.lineConverter]
+            };
+            const convline = confLc[field.lineConverter];
             if (!convline) {
-              return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`
+              return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`;
             }
             const lignes = value.split('\n').map(v=>`<${convline.it}>${v}</${convline.it}>`);
             
@@ -183,7 +191,7 @@ function genererChampHTML(field, value) {
             }
     case 'markdown':
       // il faut parser le markdown
-      return `<h2>${field.label}</h2> ${converter.toHTML(value)}`;
+      return `<h2>${field.label}</h2> ${converter.toHTML(value || '')}`;
     case 'link':
       // un paragraphe où ést crée un lien cliquable
       return `<p class="formation-actions"><a href="${value.url}" target="_blank" class="border-link">${value.label}</a></p>`;
@@ -212,9 +220,9 @@ const localStorage_key = 'formConfigSaved';
 // Sauvegarder la configuration dans LocalStorage
 function sauvegarderConfig(nom = 'default') {
   const sauvegarde = {
-    main: JSON.parse(JSON.stringify(stockage.main)),
-    aside: JSON.parse(JSON.stringify(stockage.aside))
-  }
+    main: JSON.parse(JSON.stringify(stockage.main || {})),
+    aside: JSON.parse(JSON.stringify(stockage.aside || {}))
+  };
   localStorage.setItem(`${localStorage_key}_${nom}`, JSON.stringify(sauvegarde));
   alert("Configuration sauvegardée !");
 }
@@ -232,6 +240,4 @@ function chargerConfig(nom = 'default') {
   Object.assign(stockage.aside, parsed.aside);
   alert("Configuration chargée !");
 }
-
-
 </script>
