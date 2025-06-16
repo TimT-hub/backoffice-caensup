@@ -15,7 +15,7 @@
                   class="mr-2"
                   :id="'hide_' + field.id"
                 />
-                <label :for="'hide_' + field.id" class="text-sm">Masquer ce champ</label>
+                <label :for="'hide_' + field.id" class="text-sm">{{ field.label }}</label>
               </div>
 
               <component v-if="stockage.main[field.id].hidden"
@@ -38,7 +38,7 @@
                 class="mr-2"
                 :id="'hide_' + field.id"
                 />
-                <label :for="'hide_' + field.id" class="text-sm">Afficher ce champ</label>
+                <label :for="'hide_' + field.id" class="text-sm">{{ field.label }}</label>
               </div>
               <component v-if="stockage.aside[field.id].hidden"
                         :is="getComponent(field.type)"
@@ -59,22 +59,6 @@
           <!--Bouton d'ajout dans le template-->
           <button @click="afficherHTML" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Générer le HTML</button>
 
-          <div class="flex gap-4 mt-4">
-            <div>
-              <label for="configName" class="text-sm">Nom de la configuration :</label>
-              <input
-              v-model="configName" 
-              id="configName" 
-              type="text" 
-              class="mt-2 px-3 py-2 border border-gray-300 rounded" />
-            </div>
-            <button @click="sauvegarderConfig(configName)" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Sauvegarder la configuration
-            </button>
-            <button @click="chargerConfig(configName)" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Charger la configuration
-          </button>
-        </div>
             <div class="mt-6">
               <HtmlCodePreview title="Main" :code="htmlGenere[0]" />
               <button @click="copier(htmlGenere[0])" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -88,7 +72,36 @@
               </button>
             </div>
         </TabPanel>
-        <TabPanel header="Aperçu"></TabPanel>
+        <TabPanel header="Configuration">
+  <div class="p-4 bg-gray-100 rounded-lg">
+    <h2 class="text-xl font-semibold mb-4">Configuration</h2>
+
+    <div class="mb-6">
+      <label for="configName" class="text-sm">Nom de la configuration :</label>
+      <input
+        v-model="configName"
+        id="configName"
+        type="text"
+        class="mt-2 px-3 py-2 border border-gray-300 rounded"
+      />
+    </div>
+
+    
+    <div class="flex gap-4 mt-4">
+      <button
+        @click="sauvegarderConfig(configName)"
+        class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Sauvegarder la configuration
+      </button>
+      <button
+        @click="chargerConfig(configName)"
+        class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Charger la configuration
+      </button>
+    </div>
+  </div>
+</TabPanel>
+
       </TabView>
       </form>
     </div>
@@ -97,14 +110,14 @@
 
 <script setup>
 
-const activeTab = ref(0)
+const activeTab = ref(0);
 import Editor from '@toast-ui/editor';
-import { ref, reactive, watch } from 'vue'
-import TabView from 'primevue/tabview'
-import TabPanel from 'primevue/tabpanel'
-import HtmlCodePreview from './components/HtmlCodePreview.vue'
-import '@toast-ui/editor/dist/toastui-editor.css'
-import config from './config/formConfig.js'
+import { ref, reactive, watch } from 'vue';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+import HtmlCodePreview from './components/HtmlCodePreview.vue';
+import '@toast-ui/editor/dist/toastui-editor.css';
+import config from './config/formConfig.js';
 
 const stockage = reactive({ main: {}, aside: {} });
 
@@ -240,4 +253,8 @@ function chargerConfig(nom = 'default') {
   Object.assign(stockage.aside, parsed.aside);
   alert("Configuration chargée !");
 }
+
+const configName = ref('');
+
+
 </script>
