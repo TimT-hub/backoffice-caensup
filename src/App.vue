@@ -6,9 +6,8 @@
       <TabView v-model:activeIndex="activeTab">
         <TabPanel header="Partie principale">
           <template #default>
-            <div v-for="field in config.main" :key="field.id" class="mb-6" v-if="stockage.main[field.id]">
-
-              
+            <template v-for="field in config.main" :key="field?.id">
+            <div v-if="field && stockage.main[field.id]" class="mb-6">
               <div class="flex items-center mb-2">
                 <input
                   type="checkbox"
@@ -26,13 +25,14 @@
                         v-model="stockage.main[field.id].value"
                         />
             </div>
+            </template>
           </template>
         </TabPanel>
 
         <TabPanel header="Informations complémentaires">
           <template #default>
-            <div v-for="field in config.main" :key="field.id" class="mb-6" v-if="stockage.main[field.id]">
-
+            <template v-for="field in config.aside" :key="field?.id">
+            <div v-if="field && stockage.aside[field.id]" class="mb-6">
               <div class="flex items-center mb-2">
                 <input
                 type="checkbox"
@@ -49,6 +49,7 @@
                         v-model="stockage.aside[field.id].value"
               />
             </div>
+            </template>
           </template>
         </TabPanel>
         <TabPanel header="Génération">
@@ -123,29 +124,51 @@
   </div>
 </TabPanel>
 
-
       </TabView>
       </form>
     </div>
   </div>
 </template>
 
-<script setup>
-
-const activeTab = ref(0);
+ <script setup>
+import { ref, reactive, watch, onMounted } from 'vue';
 import Editor from '@toast-ui/editor';
-import { ref, reactive, watch } from 'vue';
+import '@toast-ui/editor/dist/toastui-editor.css';
+
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import HtmlCodePreview from './components/HtmlCodePreview.vue';
-import '@toast-ui/editor/dist/toastui-editor.css';
-import config from './config/formConfig.js';
+import Dropdown from 'primevue/dropdown';
 
+import HtmlCodePreview from './components/HtmlCodePreview.vue';
+
+// Configuration des champs
+import configData from './config/formConfig.js';
+
+const activeTab = ref(0);
+
+// Initialisation de la configuration réactive
+const config = reactive({
+  main: configData.main,
+  aside: configData.aside,
+});
+
+// Stockage des valeurs des champs et de leur état d'affichage
 const stockage = reactive({ main: {}, aside: {} });
 
+for (const zone in config) {
+  config[zone].forEach(field => {
+    stockage[zone][field.id] = { 
+      value: field.default ?? "",
+      hidden: true
+    };
+  });
+}
+
+// Convertisseur Markdown vers HTML
 const converter = {
   editor: null,
   init() {
+    if (this.editor) return;
     const div = document.createElement('div');
     div.style.display = 'none';
     document.body.appendChild(div);
@@ -157,106 +180,88 @@ const converter = {
     });
   },
   toHTML(markdown) {
+    this.init();
     this.editor.setMarkdown(markdown);
     return this.editor.getHTML();
   },
 };
 
-for (const zone in config) {
-  config[zone].forEach(field => {
-    stockage[zone][field.id] = { 
-      value: field.default ?? "",
-      hidden: true
-      };
-  });
-}
-
+// Détermination du composant selon le type de champ
 function getComponent(type) {
   return {
     inputText: 'input-field',
     textarea: 'textarea-field',
     markdown: 'markdown-field',
-    link: 'link-field'
+    link: 'link-field',
   }[type] || 'unknown-field';
 }
 
-// crée bloc HTML contenant champs 
-function genererHTML(zConfig,zData) {
-
-  converter.init();
-  let html = '';
-  for (const field of zConfig) {
-    //recupere les données associés via l'ID
-    const data = zData[field.id];
-    //si le champ est visible et a une valeur on l'affiche
-    if (data.hidden && data.value) {
-      //on appele fonction genererChampHTML() pour obtenir le HTML du champ
-      html += genererChampHTML(field, data.value);
-    }
-  }
-  return html;
-}
-
-// fonction qui retourne un HTML généré pour chaque champ en fonction du type
+// Génération HTML d'un champ
 function genererChampHTML(field, value) {
-  //Condition 'switch' qui permet d'apater le format HTML en fonction du type
   switch (field.type) {
     case 'inputText':
-      //pour inputText, un paragraphe simple, value est le texte saisi par l'utilisateur
       return `<p><strong>${field.label} :</strong> ${value}</p>`;
+
     case 'textarea': {
-        const confLc = {
-          ul: { pre: "ul", it: "li" },
-          ol: { pre: "ol", it: "li" },
-          p:  { pre: null, it: "p" }
-            };
-            const convline = confLc[field.lineConverter];
-            if (!convline) {
-              return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`;
-            }
-            const lignes = value.split('\n').map(v=>`<${convline.it}>${v}</${convline.it}>`);
-            
-            const contenu = lignes.join('');
-            
-            const labelHtml = `<p><strong>${field.label} :</strong></p>`;
-            
-            return convline.pre
-              ? `${labelHtml}<${convline.pre}>${contenu}</${convline.pre}>`
-              : `${labelHtml}${contenu}`;
-            }
+      const confLc = {
+        ul: { pre: "ul", it: "li" },
+        ol: { pre: "ol", it: "li" },
+        p:  { pre: null, it: "p" }
+      };
+      const convline = confLc[field.lineConverter];
+      if (!convline) {
+        return `<p><strong>${field.label} :</strong><br>${value.replace(/\n/g, '<br>')}</p>`;
+      }
+      const lignes = value.split('\n').map(v => `<${convline.it}>${v}</${convline.it}>`).join('');
+      const labelHtml = `<p><strong>${field.label} :</strong></p>`;
+      return convline.pre
+        ? `${labelHtml}<${convline.pre}>${lignes}</${convline.pre}>`
+        : `${labelHtml}${lignes}`;
+    }
+
     case 'markdown':
-      // il faut parser le markdown
       return `<h2>${field.label}</h2> ${converter.toHTML(value || '')}`;
+
     case 'link':
-      // un paragraphe où ést crée un lien cliquable
       return `<p class="formation-actions"><a href="${value.url}" target="_blank" class="border-link">${value.label}</a></p>`;
+
     default:
-      //Cas par défaut si le type est inconnu, suis le contenu de la boucle pour le type des champs
-      return `<p><strong>${field.label} :</strong> ${value}</p>`
+      return `<p><strong>${field.label} :</strong> ${value}</p>`;
   }
 }
 
-//  pour stocker le HTML généré
+// Génération complète HTML pour une zone (main ou aside)
+function genererHTML(zoneConfig, zoneData) {
+  converter.init();
+  return zoneConfig
+    .filter(field => zoneData[field.id]?.hidden && zoneData[field.id].value)
+    .map(field => genererChampHTML(field, zoneData[field.id].value))
+    .join('');
+}
+
 const htmlGenere = ref(['', '']);
 
-// Fonction pour afficher ce HTML dans la page
 function afficherHTML() {
   htmlGenere.value[0] = genererHTML(config.main, stockage.main);
   htmlGenere.value[1] = genererHTML(config.aside, stockage.aside);
 }
 
-//fonction de copie
+// Fonction de copie dans le presse-papiers
 function copier(contenu) {
   navigator.clipboard.writeText(contenu);
 }
 
+// Configuration sauvegardée
 const localStorage_key = 'formConfigSaved';
+const configName = ref('');
+const selectedConfig = ref('');
+const savedConfigs = ref([]);
 
 function sauvegarderConfig(nom = 'default') {
   const sauvegarde = {
-    main: JSON.parse(JSON.stringify(stockage.main || {})),
-    aside: JSON.parse(JSON.stringify(stockage.aside || {})),
-    configName: nom
+    main: JSON.parse(JSON.stringify(stockage.main)),
+    aside: JSON.parse(JSON.stringify(stockage.aside)),
+    configName: nom,
   };
   localStorage.setItem(`${localStorage_key}_${nom}`, JSON.stringify(sauvegarde));
   configName.value = nom;
@@ -270,19 +275,12 @@ function chargerConfig(nom = 'default') {
     alert("Aucune configuration trouvée.");
     return;
   }
-
   const parsed = JSON.parse(sauvegarde);
   Object.assign(stockage.main, parsed.main);
   Object.assign(stockage.aside, parsed.aside);
   configName.value = parsed.configName || nom;
   alert("Configuration chargée !");
 }
-
-
-const configName = ref('');
-
-const selectedConfig = ref('');
-const savedConfigs = ref([]);
 
 function updateSavedConfigsList() {
   const keys = Object.keys(localStorage)
@@ -292,12 +290,5 @@ function updateSavedConfigsList() {
 }
 
 onMounted(updateSavedConfigsList);
-
-import configData from './config/formConfig.js';
-const config = reactive({
-  main: configData.main,
-  aside: configData.aside
-});
-
 
 </script>
