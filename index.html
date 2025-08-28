@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Générateur de Fiche Formation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://unpkg.com/vue@3"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+    <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+
+    <script>
+  if (typeof primevue === 'undefined') {
+    console.error('PrimeVue n\'est pas chargé correctement.');
+  } else {
+    console.log('PrimeVue chargé avec succès!');
+  }
+</script>
+  
+</head>
+
+<body class="bg-gray-100 p-6">
+  <div id="app" class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow">
+    <h1 class="text-3xl font-bold mb-8 text-center text-blue-700">Générateur de Fiche Formation</h1>
+
+    <!-- field est égal aux champs du formulaire  -->
+
+    <!--le formulaire empeche l'envoi avec submit.prevent 
+    (empêche le comportement par défaut qui est de soumettre le formulaire.)-->
+
+    <form @submit.prevent>
+
+      <Dropdown 
+        v-model="selection_partie" 
+        :options="options" 
+        optionLabel="label" 
+        optionValue="value"
+        placeholder="Choisir une partie"
+        class="mb-4 w-full md:w-60"
+      />
+
+      <div v-if="selection_partie === 'main'">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Contenu principal</h2>
+      <!-- boucle parcourant chaque champ de  main qui dans config/ l'élément clé des 
+       données: id de field-->
+      <div v-for="field in config.main" :key="field.id" class="mb-6">
+                    <!--retourne nom composant en fonct du type-->
+        <component :is="getComponent(field.type)" 
+                   :field="field" 
+                   :zone="'main'" 
+                   v-model="stockage.main[field.id]">
+        </component>
+      </div>
+      </div>
+
+
+      <div v-if="selection_partie === 'aside'">
+      <!-- boucle pour la partie complémentaires -->
+      <h2 class="text-xl font-semibold mb-4 mt-10 border-b pb-2">Informations complémentaires</h2>
+      <div v-for="field in config.aside" :key="field.id" class="mb-6">
+        <component :is="getComponent(field.type)" 
+                   :field="field" 
+                   :zone="'aside'" 
+                   v-model="stockage.aside[field.id]">
+        </component>
+      </div>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+
+    const { createApp, ref } = Vue;
+
+   //Vue.createApp sans la constante du dessus
+    const app = createApp({
+      data() {
+        const config = {
+          main: [
+            { id: "objectifs", label: "Objectifs", type: "markdown", default: "" },
+            { id: "ficheUrl", 
+              label: "Bouton vers la fiche formation", 
+              type: "link", 
+              default: { label: "Voir la fiche", url: "https://caensup.fr/" }},
+            { id: "missions", label: "Missions", type: "markdown", default: "" },
+            { id: "secteurs", label: "Secteurs d'activité", type: "textarea", default: "" },
+            { id: "debouches", label: "Métiers et débouchés", type: "textarea", default: "" },
+            { id: "competences", label: "Blocs de compétences", type: "markdown", default: "" },
+            { id: "inscription", label: "Inscription", type: "markdown", default: "" },
+            { id: "video", label: "Vidéo de présentation", type: "inputText", default: "" }
+          ],
+          aside: [
+            { id: "prerequis", label: "Prérequis", type: "textarea", default: "" },
+            { id: "rythme", label: "Rythme", type: "textarea", default: "" },
+            { id: "alternance", label: "Dispositif d'alternance", type: "textarea", default: "" },
+            { id: "financements", label: "Autres financements", type: "textarea", default: "" },
+            { id: "infos", label: "Informations complémentaires", type: "textarea", default: "" }
+          ]
+        };
+
+        //l'objet contiend données organisées par zones(main,aside) 
+        const stockage = {};
+        //boucle parcours chaque partie de config(main/aside))
+        for (const zone in config) {
+          stockage[zone] = {};
+          //on parcours chaque champ (avec field) dans une des 2 zones (main/aside)
+          config[zone].forEach(field => {
+            //chaque champ a une valeur défine par défaut ou vide sinon
+            stockage[zone][field.id] = field.default ?? "";
+          });
+        }
+
+        const selection_partie = ref(null);
+
+        const options = [
+          { label: 'Partie Principale', value: 'main' },
+          { label: 'Partie Aside', value: 'aside' }
+        ];
+
+        return { config, stockage, selection_partie, options };
+      },
+      methods: {
+        getComponent(type) {
+          return {
+            inputText: 'input-field',
+            textarea: 'textarea-field',
+            markdown: 'markdown-field',
+            link: 'link-field'
+          }[type] || 'unknown-field';
+        }
+      }
+    });
+
+
+    app.component('input-field', {
+      //quelles données le composant va recevoir
+      props: ['field', 'modelValue'],
+      //mise à jour du contenu
+      emits: ['update:modelValue'],
+      //htmk qi appelle le composant
+      template: `
+        <div>
+          <label :for="field.id" class="block font-medium mb-1">{{ field.label }}</label>
+          <input type="text" :id="field.id"
+                 class="w-full p-2 border rounded shadow-sm"
+                 :value="modelValue"
+                 @input="$emit('update:modelValue', $event.target.value)" />
+        </div>
+      `
+    });
+
+    app.component('textarea-field', {
+      props: ['field', 'modelValue'],
+      emits: ['update:modelValue'],
+      template: `
+        <div>
+          <label :for="field.id" class="block font-medium mb-1">{{ field.label }}</label>
+          <textarea :id="field.id"
+                    class="w-full p-2 border rounded shadow-sm h-28 resize-y"
+                    :value="modelValue"
+                    @input="$emit('update:modelValue', $event.target.value)">
+          </textarea>
+        </div>
+      `
+    });
+
+    app.component('markdown-field', {
+      props: ['field', 'modelValue'],
+      emits: ['update:modelValue'],
+      template: `
+        <div>
+          <label :for="field.id" class="block font-medium mb-1">{{ field.label }}</label>
+          <div :id="'editor-' + field.id"></div>
+        </div>
+      `,
+      mounted() {
+        this.editor = new toastui.Editor({
+          //le conteneur où l'éditeur est inseré
+          el: document.getElementById('editor-' + this.field.id),
+          //défini  type d'édition
+          initialEditType: 'markdown',
+          //contenu initial affich dans l'éditeur qui est la valeur du prop de l'instance de vue
+          initialValue: this.modelValue,
+          //getMarkdown donne nouvelle valeur à chaque modification
+          events: {
+            change: () => {
+              this.$emit('update:modelValue', this.editor.getMarkdown());
+            }
+          }
+        });
+      },
+      // met à jour l'éditeur si la valeur change le modelValue dynamiquement(via un bouton par exemple, permet d'afficher modification de l'exterieur)
+      watch: {
+        //newVal, défini: nouvel valeur après modification
+        modelValue(newVal) {
+          // si l'éditeur est initialisé && si le getMarkdown donne nouvelle valeur différente à chaque modification
+          if (this.editor && this.editor.getMarkdown() !== newVal) {
+            // alors on met à jour l'éditeur avec la nouvel valeur
+            this.editor.setMarkdown(newVal);
+          }
+        }
+      }
+    });
+
+    app.component('link-field', {
+      props: ['field', 'modelValue'],
+      emits: ['update:modelValue'],
+      template: `
+        <div>
+          <label class="block font-medium mb-1">{{ field.label }}</label>
+          <div class="mb-2">
+            <label :for="field.id + '_label'" class="text-sm font-medium">Label</label>
+            <input :id="field.id + '_label'" type="text"
+                   class="w-full p-2 border rounded shadow-sm"
+                   :value="modelValue.label"
+                   @input="$emit('update:modelValue', { ...modelValue, label: $event.target.value })" />
+          </div>
+          <div>
+            <label :for="field.id + '_url'" class="text-sm font-medium">URL</label>
+            <input :id="field.id + '_url'" type="url"
+                   class="w-full p-2 border rounded shadow-sm"
+                   :value="modelValue.url"
+                   @input="$emit('update:modelValue', { ...modelValue, url: $event.target.value })" />
+          </div>
+        </div>
+      `
+    });
+
+    app.component('unknown-field', {
+      props: ['field'],
+      template: `<div class="text-red-500">Type inconnu : {{ field.type }}</div>`
+    });
+
+    app.use(PrimeVue.Config, {
+        theme: {
+            preset: PrimeVue.Themes.Aura
+        }
+    });
+
+    app.component('Dropdown', Dropdown);
+
+    app.mount('#app');
+  </script>
+</body>
+</html>
